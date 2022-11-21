@@ -1,12 +1,13 @@
 import axios from 'axios';
+import { useEffect } from 'react';
 import './App.css';
 import { useForm } from './hooks/useForm';
 
 function App() {
 
-  // const url = `${process.env.REACT_APP_API_ENDPOINT_LOCAL}/api/pdf`
+  const url = `${process.env.REACT_APP_API_ENDPOINT}/api/pdf`
 
-  const url = `http://localhost/api/pdf`
+  // const url = `http://localhost/api/pdf`
 
   const initialForm = {
     format: '',
@@ -15,25 +16,45 @@ function App() {
 
   const [formValues, handleInputChange, reset] = useForm(initialForm);
 
-  const onSubmit = (e) => {
-    e.preventDefault()
-    console.log(formValues);
-
-    axios.post(url, formValues)
-      .then(res => console.log(res))
-      .catch(e => console.log(e))
-
-
-    // axios.get(url)
-    //   .then(res => console.log(res))
-    //   .catch(e => console.log(e))
+  const onInputFile = (e) => {
+    console.log(e.target.file);
   }
 
+  const onSubmit = (e) => {
+    e.preventDefault()
+
+    const {pdf, format} = formValues
+
+    const form = new FormData();
+    form.append('pdf', pdf); // encapsula el archivo
+    form.append('format', format);
+
+    const config = {
+      headers: { 
+        'Content-Type': 'multipart/form-data'
+      }
+    }
+    
+    console.log(form);
+    axios.post(url, form, config)
+      .then(response => {
+        console.log(response.data);
+      })
+      .catch(e => console.log(e))
+
+    
+
+  }
+
+  useEffect(() => {
+    console.log(formValues);
+  }, [formValues])
+  
 
   return (
     <div className="App container-fluid">
       <header className="App-header row">
-        <form action="" method="post" className='form'>
+        <form action={url} method="POST" className='form' encType="multipart/form-data">
           <div className="row">
             <div className="col-md-12">
               <select name="format" defaultValue={'DEFAULT'} onChange={handleInputChange} className='form-select' aria-label="Default select example" required>
@@ -56,7 +77,8 @@ function App() {
             <div className="col-md-8">
               <button
                 className='form-control btn btn-primary mt-4'
-                onClick={onSubmit}
+                // onClick={onSubmit}
+                type='submit'
               >
                 Convertir
               </button>
